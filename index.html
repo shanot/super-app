@@ -4,149 +4,392 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CGU — Lisez (vraiment) avant d'accepter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f5f4ef; --card: #ffffff; --line: #e3e1d8; --line2: #d3d1c7;
-    --text: #2c2c2a; --muted: #5f5e5a; --hint: #888780;
-    --accent: #185fa5; --accent-bg: #e6f1fb; --track: #ecebe4;
-    --ok: #0f6e56; --ok-bg: #e1f5ee;
+    --primary-100: #f1f7fc;
+    --primary-200: #dff2fb;
+    --primary: #11abec;
+    --primary-450: #0da1df;
+    --primary-500: #1093cb;
+    --primary-700: #013a51;
+    --primary-900: #012b3c;
+
+    --white: #fff;
+    --gray-100: #f9fbfc;
+    --gray-200: #f3f7fc;
+    --gray-300: #dfe8f2;
+    --gray-325: #a8bfd7;
+    --gray-350: #516a87;
+    --gray: #354a61;
+    --gray-700: #0b1c32;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-pill: 60px;
+
+    --shadow-s-top: 0 -2px 8px 0 rgba(40, 40, 40, 0.05);
+    --shadow-m: 0 12px 12px 0 rgba(40, 40, 40, 0.05);
+    --shadow-l: 0 20px 32px 0 rgba(40, 40, 40, 0.12);
+
+    --font-body: "Open Sans", "Helvetica Neue", Arial, sans-serif;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1a1a18; --card: #262624; --line: #3a3a37; --line2: #4a4a46;
-      --text: #ededea; --muted: #b4b2a9; --hint: #888780;
-      --accent: #85b7eb; --accent-bg: #0c447c; --track: #333331;
-      --ok: #5dcaa5; --ok-bg: #085041;
-    }
-  }
+
+  html, body { margin: 0; padding: 0; }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.7; padding: 1.5rem 1rem;
-    display: flex; justify-content: center;
+  body { font-family: var(--font-body); color: var(--gray); }
+
+  #doc-scroll::-webkit-scrollbar { width: 10px; }
+  #doc-scroll::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 60px; border: 3px solid var(--white); }
+  #doc-scroll::-webkit-scrollbar-track { background: transparent; }
+  #nav-scroll::-webkit-scrollbar { width: 8px; }
+  #nav-scroll::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 60px; border: 2px solid var(--gray-100); }
+
+  .wrapper {
+    min-height: 100vh; background: var(--gray-200);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; font-family: var(--font-body);
   }
-  .wrap { max-width: 640px; width: 100%; }
-  .card { background: var(--card); border: 0.5px solid var(--line); border-radius: 12px; overflow: hidden; }
-  .head {
-    padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--line);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  .shell {
+    position: relative; display: flex;
+    width: min(1080px, 100%); height: min(760px, calc(100vh - 48px));
+    background: var(--white); border: 1px solid var(--gray-300);
+    border-radius: var(--radius-lg); box-shadow: var(--shadow-m); overflow: hidden;
   }
-  .head .title { font-weight: 500; font-size: 15px; }
-  .badge {
-    font-size: 12px; padding: 4px 10px; border-radius: 8px;
-    background: var(--accent-bg); color: var(--accent); white-space: nowrap;
+
+  .backdrop { position: absolute; inset: 0; background: rgba(11,28,50,0.4); z-index: 20; }
+
+  aside {
+    position: relative; flex: 0 0 248px; display: flex; flex-direction: column;
+    background: var(--gray-100); border-right: 1px solid var(--gray-300);
   }
-  @media (prefers-color-scheme: dark) { .badge { color: #b5d4f4; } }
-  #scroll {
-    height: 340px; overflow-y: scroll; padding: 1.25rem;
-    font-size: 13px; color: var(--muted); scroll-behavior: smooth;
+  .nav-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 20px 20px 16px; border-bottom: 1px solid var(--gray-300);
   }
-  #scroll .lead { color: var(--text); font-weight: 500; margin: 0 0 1rem; }
-  .art-title { margin: 0 0 0.4rem; color: var(--text); font-weight: 500; }
-  .clause { margin: 0 0 0.8rem; }
-  .num { color: var(--hint); }
-  .foot { padding: 1rem 1.25rem; border-top: 0.5px solid var(--line); }
-  .track { height: 6px; background: var(--track); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
-  #bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.15s; }
-  button {
-    width: 100%; padding: 10px 14px; font-size: 14px; font-family: inherit;
-    border: 0.5px solid var(--line2); border-radius: 8px; background: transparent;
-    color: var(--text); cursor: pointer; transition: opacity 0.2s, background 0.2s;
+  .nav-head .label { display: flex; align-items: center; gap: 8px; color: var(--primary-700); }
+  .nav-head .label span { font-size: 14px; font-weight: 600; }
+  .nav-count {
+    font-size: 11px; font-weight: 600; color: var(--primary-700); background: var(--primary-100);
+    border-radius: var(--radius-pill); padding: 3px 9px; white-space: nowrap;
   }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .status { text-align: center; font-size: 13px; color: var(--hint); margin: 12px 0 0; }
+  .nav-close {
+    margin-left: 4px; display: none; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border: none; background: transparent; color: var(--gray-350);
+    border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .nav-close:hover { background: var(--gray-200); }
+  #nav-scroll { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; flex-direction: column; gap: 2px; padding: 8px 12px;
+    border-radius: var(--radius-sm); cursor: pointer; text-align: left; width: 100%;
+    border: none; font-family: inherit; background: transparent; color: var(--gray-350);
+  }
+  .nav-item:hover { background: var(--gray-200); }
+  .nav-item.active { background: var(--primary-100); color: var(--primary-700); }
+  .nav-item .roman { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; opacity: 0.65; }
+  .nav-item .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .nav-foot { padding: 14px 20px; border-top: 1px solid var(--gray-300); }
+  .nav-foot p { margin: 0; font-size: 11px; font-style: italic; color: var(--gray-325); line-height: 1.5; }
+
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--white); }
+  header.doc-head { display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-bottom: 1px solid var(--gray-300); }
+  .hamburger {
+    display: none; align-items: center; justify-content: center; width: 34px; height: 34px;
+    border: 1px solid var(--gray-300); background: var(--white); color: var(--gray);
+    border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .hamburger:hover { border-color: var(--gray); }
+  .doc-icon {
+    display: flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+    border-radius: var(--radius-sm); background: var(--primary-100); color: var(--primary);
+  }
+  .doc-head .titlebox { flex: 1; min-width: 0; }
+  .doc-head h3 { font-size: 16px; font-weight: 600; color: var(--primary-700); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pct-badge {
+    font-size: 12px; font-weight: 600; color: var(--primary-700); background: var(--primary-100);
+    border-radius: var(--radius-pill); padding: 5px 11px; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+
+  #doc-scroll { position: relative; flex: 1; overflow-y: auto; padding: 24px 28px; scroll-behavior: smooth; }
+  .lead { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--primary-700); line-height: 1.5; }
+  .sublead { margin: 0 0 24px; font-size: 12px; font-style: italic; color: var(--gray-325); line-height: 1.5; }
+  section.article { margin: 0 0 28px; }
+  section.article h4 {
+    font-size: 14px; font-weight: 600; color: var(--primary-700); margin: 0 0 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--gray-300);
+  }
+  p.clause { margin: 0 0 10px; font-size: 13px; color: var(--gray-350); line-height: 1.65; }
+  p.clause .num { font-weight: 600; color: var(--gray-325); margin-right: 5px; font-variant-numeric: tabular-nums; }
+
+  footer.doc-foot { padding: 16px 24px; border-top: 1px solid var(--gray-300); background: var(--white); box-shadow: var(--shadow-s-top); }
+  .track { height: 6px; background: var(--gray-300); border-radius: var(--radius-pill); overflow: hidden; margin-bottom: 14px; }
+  #bar { height: 100%; width: 0%; background: var(--primary); border-radius: var(--radius-pill); transition: width 150ms ease; }
+  #accept {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 11px 16px; font-size: 14px; font-weight: 600; font-family: var(--font-body);
+    border-radius: var(--radius-sm); transition: background-color 100ms ease, border-color 100ms ease;
+    background: var(--gray-300); color: var(--gray-325); border: 1px solid var(--gray-300); cursor: not-allowed;
+  }
+  #accept.unlocked { background: var(--primary); color: var(--white); border: 1px solid var(--primary-450); cursor: pointer; }
+  #accept.unlocked:hover { background: var(--primary-500); }
+  .status { margin: 12px 0 0; text-align: center; font-size: 12px; font-style: italic; color: var(--gray-350); line-height: 1.4; min-height: 17px; }
+
+  body.mobile aside {
+    position: absolute; z-index: 30; top: 0; left: 0; bottom: 0; width: 276px;
+    transform: translateX(-100%); transition: transform 280ms cubic-bezier(0.2,0.7,0.2,1);
+  }
+  body.mobile aside.open { transform: translateX(0); box-shadow: var(--shadow-l); }
+  body.mobile .shell { width: 100%; height: 100vh; border: none; border-radius: 0; box-shadow: none; }
+  body.mobile .wrapper { padding: 0; }
+  body.mobile .nav-close { display: flex; }
+  body.mobile .hamburger { display: flex; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <div class="head">
-      <span class="title">📄 Conditions générales d'utilisation</span>
-      <span class="badge" id="badge">0 %</span>
-    </div>
-    <div id="scroll">
-      <p class="lead">Veuillez lire l'intégralité du présent document avant de pouvoir l'accepter.</p>
-      <div id="content"></div>
-    </div>
-    <div class="foot">
-      <div class="track"><div id="bar"></div></div>
-      <button id="btn" disabled>🔒 <span id="label">Continuez à défiler pour accepter…</span></button>
+<div class="wrapper">
+  <div class="shell">
+    <div class="backdrop" id="backdrop" hidden></div>
+
+    <aside id="sidebar">
+      <div class="nav-head">
+        <div class="label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+          <span>Sommaire</span>
+        </div>
+        <span class="nav-count" id="nav-count">0</span>
+        <button class="nav-close" id="nav-close" aria-label="Fermer le sommaire"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div id="nav-scroll"></div>
+      <div class="nav-foot"><p id="nav-foot-note"></p></div>
+    </aside>
+
+    <div class="main">
+      <header class="doc-head">
+        <button class="hamburger" id="hamburger" aria-label="Ouvrir le sommaire"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+        <span class="doc-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>
+        <div class="titlebox"><h3>Conditions générales d'utilisation</h3></div>
+        <span class="pct-badge" id="pct-badge">0 %</span>
+      </header>
+
+      <div id="doc-scroll">
+        <p class="lead">Veuillez lire l'intégralité du présent document avant de pouvoir l'accepter.</p>
+        <p class="sublead">Document contractuel généré en temps réel. Toute ressemblance avec de vraies conditions générales serait purement fortuite.</p>
+        <div id="content"></div>
+      </div>
+
+      <footer class="doc-foot">
+        <div class="track"><div id="bar"></div></div>
+        <button id="accept" disabled>
+          <span id="accept-icon"></span>
+          <span id="accept-label">Continuez à défiler pour accepter…</span>
+        </button>
+        <p class="status" id="status"></p>
+      </footer>
     </div>
   </div>
-  <p class="status" id="status">Plus vous défilez, plus les juristes s'emballent…</p>
 </div>
 
 <script>
 (function () {
-  var scroll = document.getElementById('scroll');
-  var content = document.getElementById('content');
-  var bar = document.getElementById('bar');
-  var badge = document.getElementById('badge');
-  var btn = document.getElementById('btn');
-  var label = document.getElementById('label');
-  var status = document.getElementById('status');
+  // ---- Props (from the design component) ----
+  var ENDLESS = true;                 // endless: append articles forever, cap at 99%
+  var CLAUSE_DENSITY = "Normal";      // "Léger" | "Normal" | "Dense"
+  var SHOW_STATUS = true;
+
+  var LOCK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  var CHECK_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
   var sujets = ["le Cocontractant","l'Utilisateur Final Présumé","la Partie Adverse Sympathique","le Tiers de Bonne Foi Réputée","le Bénéficiaire Indirect","l'Éditeur des Présentes","le Responsable de Traitement","le Sous-Traitant Ultérieur","l'Ayant Droit Putatif","la Personne Concernée","le Mandataire Apparent","l'Internaute Lambda"];
   var verbes = ["s'engage irrévocablement à","renonce expressément à toute prétention sur","reconnaît avoir pris connaissance de","ne saurait en aucun cas opposer","consent par les présentes à","déclare et garantit sans réserve quant à","transfère à titre gratuit et perpétuel","subordonne l'exécution de la présente clause à"];
   var objets = ["la jouissance paisible du Service","l'usufruit numérique des cookies tiers","la portabilité réversible des Données à Caractère Personnel","le droit à l'oubli différé sous conditions suspensives","la licéité du traitement au sens de l'article 6 du RGPD","la cession des biscuits de session","l'intégrité substantielle de l'écosystème logiciel","la finalité déterminée, explicite et légitime susvisée","les intérêts légitimes poursuivis par le Responsable","la base légale du consentement libre et éclairé"];
   var conditions = ["sous réserve des dispositions de l'article L.121-1 du Code de la consommation","nonobstant toute stipulation contraire antérieure","dans la limite des stocks juridiques disponibles","sauf cas de force majeure dûment caractérisée","à l'exclusion expresse de tout vice du consentement","conformément au considérant 42 dudit Règlement","par dérogation au principe de minimisation","sous astreinte journalière non comminatoire","sans préjudice des voies de recours ordinaires","au prorata temporis de la durée de conservation"];
   var consequences = ["faute de quoi la clause sera réputée non écrite mais néanmoins opposable.","ledit consentement valant acceptation tacite et réitérée.","toute renonciation ne pouvant résulter du seul silence gardé.","le tout sans novation ni remise de dette afférente.","la nullité d'une clause n'entraînant pas celle des présentes.","l'acceptation emportant adhésion pleine, entière et joyeuse.","le for juridictionnel demeurant celui du siège social fictif.","les annexes faisant partie intégrante du corpus contractuel.","la présente stipulation primant sur toute logique élémentaire."];
+  var titres = ["Des stipulations diverses et avenantes","Du consentement réputé éclairé","Des biscuits de session et cookies tiers","De la responsabilité limitée à l'infini","Du for juridictionnel imaginaire","Des annexes à l'annexe","De la force majeure mineure","Du droit inaliénable de continuer à défiler","Des données à caractère trop personnel","De la résiliation rigoureusement impossible","Du préambule rétroactif et anticipé","Des définitions résolument indéfinies","De la nullité partielle joyeusement assumée","Du silence valant acceptation tonitruante"];
+  var statusMsgs = ["Plus vous défilez, plus les juristes s'emballent…","Le cabinet d'avocats vient de recruter trois stagiaires.","Un alinéa vient d'engendrer un sous-alinéa.","Le RGPD demande à parler à votre manager.","Maître Charabia ajoute une annexe à l'annexe.","Attention : densité de jargon critique atteinte.","Le consentement éclairé est désormais aveuglant.","Vous y êtes presque… ou pas. Personne ne sait.","Le bas du document s'éloigne quand vous approchez.","Article MMXIV : du droit de continuer à scroller.","Un juriste a démissionné. Deux l'ont remplacé.","Saviez-vous que ces CGU n'ont pas de fin ? Maintenant si.","La barre de progression a renoncé à progresser.","Vous lisez plus de CGU que n'importe qui sur Terre.","Ceci est officiellement le scroll de votre vie."];
+  var romans = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII','XXIV','XXV','XXVI','XXVII','XXVIII','XXIX','XXX'];
 
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
-  function roman(n) { var r=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX']; return r[n]||(''+n); }
+  function roman(n) { return romans[n] || ('' + n); }
 
-  var clauseNum = 0;
-  function genClause(intensity) {
-    clauseNum++;
-    var n = Math.min(5, 1 + Math.floor(intensity / 1.5));
-    var html = '<p class="art-title">Article ' + roman(clauseNum) + ' — Des stipulations diverses et avenantes</p>';
-    for (var i = 0; i < n; i++) {
-      html += '<p class="clause"><span class="num">' + clauseNum + '.' + (i + 1) + '</span> Il est convenu que ' + pick(sujets) + ' ' + pick(verbes) + ' ' + pick(objets) + ', ' + pick(conditions) + ', ' + pick(consequences) + '</p>';
-    }
-    return html;
+  function densityFor(intensity) {
+    if (CLAUSE_DENSITY === "Léger") return Math.min(3, 1 + Math.floor(intensity / 3));
+    if (CLAUSE_DENSITY === "Dense") return Math.min(7, 2 + Math.floor(intensity / 1));
+    return Math.min(5, 1 + Math.floor(intensity / 1.5));
   }
 
-  for (var i = 0; i < 3; i++) content.insertAdjacentHTML('beforeend', genClause(0));
+  var scroll = document.getElementById('doc-scroll');
+  var content = document.getElementById('content');
+  var navScroll = document.getElementById('nav-scroll');
+  var bar = document.getElementById('bar');
+  var pctBadge = document.getElementById('pct-badge');
+  var navCount = document.getElementById('nav-count');
+  var navFootNote = document.getElementById('nav-foot-note');
+  var accept = document.getElementById('accept');
+  var acceptIcon = document.getElementById('accept-icon');
+  var acceptLabel = document.getElementById('accept-label');
+  var status = document.getElementById('status');
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('backdrop');
+  var hamburger = document.getElementById('hamburger');
+  var navClose = document.getElementById('nav-close');
 
-  var statusMsgs = [
-    "Plus vous défilez, plus les juristes s'emballent…",
-    "Le cabinet d'avocats vient de recruter trois stagiaires.",
-    "Un alinéa vient d'engendrer un sous-alinéa.",
-    "Le RGPD demande à parler à votre manager.",
-    "Maître Charabia ajoute une annexe à l'annexe.",
-    "Attention : densité de jargon critique atteinte.",
-    "Le consentement éclairé est désormais aveuglant.",
-    "Vous y êtes presque… ou pas. Personne ne sait.",
-    "Le bas du document s'éloigne quand vous approchez.",
-    "Article MMXIV : du droit de continuer à scroller.",
-    "Un juriste a démissionné. Deux l'ont remplacé.",
-    "Saviez-vous que ces CGU n'ont pas de fin ? Maintenant si.",
-    "La barre de progression a renoncé à progresser.",
-    "Vous lisez plus de CGU que n'importe qui sur Terre.",
-    "Ceci est officiellement le scroll de votre vie."
-  ];
+  if (!SHOW_STATUS) status.style.display = 'none';
 
-  scroll.addEventListener('scroll', function () {
-    var max = scroll.scrollHeight - scroll.clientHeight;
-    var ratio = max > 0 ? scroll.scrollTop / max : 0;
+  var articles = [];
+  var seq = 0;
+  var active = -1;
+  var reachedEnd = false;
+  var isMobile = false;
+  var ticking = false;
 
-    if (ratio > 0.75) {
-      var intensity = scroll.scrollHeight / 600;
-      content.insertAdjacentHTML('beforeend', genClause(intensity));
-      content.insertAdjacentHTML('beforeend', genClause(intensity));
+  function makeArticle(intensity) {
+    seq++;
+    var id = seq;
+    var n = densityFor(intensity);
+    var clauses = [];
+    for (var i = 0; i < n; i++) {
+      clauses.push({
+        tag: id + '.' + (i + 1),
+        text: "Il est convenu que " + pick(sujets) + " " + pick(verbes) + " " + pick(objets) + ", " + pick(conditions) + ", " + pick(consequences)
+      });
     }
+    return { id: id, roman: roman(id), title: pick(titres), clauses: clauses };
+  }
 
-    var newMax = scroll.scrollHeight - scroll.clientHeight;
-    var displayRatio = newMax > 0 ? scroll.scrollTop / newMax : 0;
-    var pct = Math.min(99, Math.round(displayRatio * 99));
-    bar.style.width = pct + '%';
-    badge.textContent = pct + ' %';
+  function renderArticle(a) {
+    var section = document.createElement('section');
+    section.className = 'article';
+    section.id = 'article-' + a.id;
+    section.setAttribute('data-article', a.id);
+    var html = '<h4>Article ' + a.roman + ' — ' + a.title + '</h4>';
+    for (var i = 0; i < a.clauses.length; i++) {
+      var c = a.clauses[i];
+      html += '<p class="clause"><span class="num">' + c.tag + '</span>' + c.text + '</p>';
+    }
+    section.innerHTML = html;
+    content.appendChild(section);
 
-    var msgIdx = Math.floor(scroll.scrollTop / 1200) % statusMsgs.length;
-    status.textContent = statusMsgs[msgIdx];
-  });
+    var btn = document.createElement('button');
+    btn.className = 'nav-item';
+    btn.setAttribute('data-nav', a.id);
+    btn.innerHTML = '<span class="roman">Art. ' + a.roman + '</span><span class="name">' + a.title + '</span>';
+    btn.addEventListener('click', function () { scrollToArticle(a.id); });
+    navScroll.appendChild(btn);
+  }
 
+  function addArticle(intensity) {
+    var a = makeArticle(intensity);
+    articles.push(a);
+    renderArticle(a);
+    updateCount();
+  }
+
+  function updateCount() {
+    navCount.textContent = articles.length;
+    navFootNote.textContent = ENDLESS
+      ? articles.length + " articles — et ce n'est pas fini."
+      : articles.length + " articles. Bon courage.";
+  }
+
+  function scrollToArticle(id) {
+    var el = scroll.querySelector('#article-' + id);
+    if (el) scroll.scrollTo({ top: el.offsetTop - 16, behavior: 'smooth' });
+    if (isMobile) closeNav();
+  }
+
+  function setActive(idx) {
+    if (idx === active) return;
+    active = idx;
+    var items = navScroll.children;
+    for (var i = 0; i < items.length; i++) {
+      if (i === idx) items[i].classList.add('active');
+      else items[i].classList.remove('active');
+    }
+  }
+
+  function computeLabel(pct) {
+    if (!ENDLESS) {
+      return reachedEnd ? "Accepter les conditions générales" : "Lisez jusqu'au bout pour accepter…";
+    }
+    if (pct < 30) return "Continuez à défiler pour accepter…";
+    if (pct < 60) return "Encore un peu de patience…";
+    if (pct < 85) return "Vous y êtes presque (mais non)…";
+    return "Le bouton recule à mesure que vous avancez…";
+  }
+
+  function updateLock(pct) {
+    var locked = ENDLESS ? true : !reachedEnd;
+    accept.disabled = locked;
+    accept.classList.toggle('unlocked', !locked);
+    acceptIcon.innerHTML = locked ? LOCK_SVG : CHECK_SVG;
+    acceptLabel.textContent = computeLabel(pct);
+  }
+
+  function openNav() { sidebar.classList.add('open'); backdrop.hidden = false; }
+  function closeNav() { sidebar.classList.remove('open'); backdrop.hidden = true; }
+
+  function applyResponsive() {
+    var mobile = window.innerWidth < 860;
+    if (mobile === isMobile) return;
+    isMobile = mobile;
+    document.body.classList.toggle('mobile', isMobile);
+    if (!isMobile) closeNav();
+  }
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      ticking = false;
+      var max = scroll.scrollHeight - scroll.clientHeight;
+      var ratio = max > 0 ? scroll.scrollTop / max : 0;
+
+      if (ENDLESS && ratio > 0.72) {
+        var intensity = scroll.scrollHeight / 600;
+        addArticle(intensity);
+        addArticle(intensity);
+      }
+
+      var nodes = scroll.querySelectorAll('[data-article]');
+      var act = 0;
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].offsetTop - 28 <= scroll.scrollTop) act = i;
+      }
+      setActive(act);
+
+      var pct;
+      if (ENDLESS) { pct = Math.min(99, Math.round(ratio * 99)); reachedEnd = false; }
+      else { pct = Math.round(ratio * 100); reachedEnd = ratio >= 0.985; }
+
+      bar.style.width = pct + '%';
+      pctBadge.textContent = pct + ' %';
+      updateLock(pct);
+
+      if (SHOW_STATUS) {
+        var msgIdx = Math.floor(scroll.scrollTop / 1200) % statusMsgs.length;
+        status.textContent = statusMsgs[msgIdx];
+      }
+    });
+  }
+
+  // ---- Init ----
+  var seedCount = ENDLESS ? 4 : 9;
+  for (var i = 0; i < seedCount; i++) addArticle(0);
+  setActive(0);
+  updateLock(0);
+  if (SHOW_STATUS) status.textContent = statusMsgs[0];
+
+  applyResponsive();
+  window.addEventListener('resize', applyResponsive);
+  scroll.addEventListener('scroll', onScroll);
+  hamburger.addEventListener('click', openNav);
+  navClose.addEventListener('click', closeNav);
+  backdrop.addEventListener('click', closeNav);
+  accept.addEventListener('click', function () { if (!accept.disabled && isMobile) closeNav(); });
 })();
 </script>
 </body>
