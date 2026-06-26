@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CGU — Lisez (vraiment) avant d'accepter</title>
+<style>
+  :root {
+    --bg: #f5f4ef; --card: #ffffff; --line: #e3e1d8; --line2: #d3d1c7;
+    --text: #2c2c2a; --muted: #5f5e5a; --hint: #888780;
+    --accent: #185fa5; --accent-bg: #e6f1fb; --track: #ecebe4;
+    --ok: #0f6e56; --ok-bg: #e1f5ee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --card: #262624; --line: #3a3a37; --line2: #4a4a46;
+      --text: #ededea; --muted: #b4b2a9; --hint: #888780;
+      --accent: #85b7eb; --accent-bg: #0c447c; --track: #333331;
+      --ok: #5dcaa5; --ok-bg: #085041;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.7; padding: 1.5rem 1rem;
+    display: flex; justify-content: center;
+  }
+  .wrap { max-width: 640px; width: 100%; }
+  .card { background: var(--card); border: 0.5px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .head {
+    padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .head .title { font-weight: 500; font-size: 15px; }
+  .badge {
+    font-size: 12px; padding: 4px 10px; border-radius: 8px;
+    background: var(--accent-bg); color: var(--accent); white-space: nowrap;
+  }
+  @media (prefers-color-scheme: dark) { .badge { color: #b5d4f4; } }
+  #scroll {
+    height: 340px; overflow-y: scroll; padding: 1.25rem;
+    font-size: 13px; color: var(--muted); scroll-behavior: smooth;
+  }
+  #scroll .lead { color: var(--text); font-weight: 500; margin: 0 0 1rem; }
+  .art-title { margin: 0 0 0.4rem; color: var(--text); font-weight: 500; }
+  .clause { margin: 0 0 0.8rem; }
+  .num { color: var(--hint); }
+  .foot { padding: 1rem 1.25rem; border-top: 0.5px solid var(--line); }
+  .track { height: 6px; background: var(--track); border-radius: 999px; overflow: hidden; margin-bottom: 12px; }
+  #bar { height: 100%; width: 0%; background: var(--accent); transition: width 0.15s; }
+  button {
+    width: 100%; padding: 10px 14px; font-size: 14px; font-family: inherit;
+    border: 0.5px solid var(--line2); border-radius: 8px; background: transparent;
+    color: var(--text); cursor: pointer; transition: opacity 0.2s, background 0.2s;
+  }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { text-align: center; font-size: 13px; color: var(--hint); margin: 12px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="head">
+      <span class="title">📄 Conditions générales d'utilisation</span>
+      <span class="badge" id="badge">0 %</span>
+    </div>
+    <div id="scroll">
+      <p class="lead">Veuillez lire l'intégralité du présent document avant de pouvoir l'accepter.</p>
+      <div id="content"></div>
+    </div>
+    <div class="foot">
+      <div class="track"><div id="bar"></div></div>
+      <button id="btn" disabled>🔒 <span id="label">Continuez à défiler pour accepter…</span></button>
+    </div>
+  </div>
+  <p class="status" id="status">Plus vous défilez, plus les juristes s'emballent…</p>
+</div>
+
+<script>
+(function () {
+  var scroll = document.getElementById('scroll');
+  var content = document.getElementById('content');
+  var bar = document.getElementById('bar');
+  var badge = document.getElementById('badge');
+  var btn = document.getElementById('btn');
+  var label = document.getElementById('label');
+  var status = document.getElementById('status');
+
+  var sujets = ["le Cocontractant","l'Utilisateur Final Présumé","la Partie Adverse Sympathique","le Tiers de Bonne Foi Réputée","le Bénéficiaire Indirect","l'Éditeur des Présentes","le Responsable de Traitement","le Sous-Traitant Ultérieur","l'Ayant Droit Putatif","la Personne Concernée","le Mandataire Apparent","l'Internaute Lambda"];
+  var verbes = ["s'engage irrévocablement à","renonce expressément à toute prétention sur","reconnaît avoir pris connaissance de","ne saurait en aucun cas opposer","consent par les présentes à","déclare et garantit sans réserve quant à","transfère à titre gratuit et perpétuel","subordonne l'exécution de la présente clause à"];
+  var objets = ["la jouissance paisible du Service","l'usufruit numérique des cookies tiers","la portabilité réversible des Données à Caractère Personnel","le droit à l'oubli différé sous conditions suspensives","la licéité du traitement au sens de l'article 6 du RGPD","la cession des biscuits de session","l'intégrité substantielle de l'écosystème logiciel","la finalité déterminée, explicite et légitime susvisée","les intérêts légitimes poursuivis par le Responsable","la base légale du consentement libre et éclairé"];
+  var conditions = ["sous réserve des dispositions de l'article L.121-1 du Code de la consommation","nonobstant toute stipulation contraire antérieure","dans la limite des stocks juridiques disponibles","sauf cas de force majeure dûment caractérisée","à l'exclusion expresse de tout vice du consentement","conformément au considérant 42 dudit Règlement","par dérogation au principe de minimisation","sous astreinte journalière non comminatoire","sans préjudice des voies de recours ordinaires","au prorata temporis de la durée de conservation"];
+  var consequences = ["faute de quoi la clause sera réputée non écrite mais néanmoins opposable.","ledit consentement valant acceptation tacite et réitérée.","toute renonciation ne pouvant résulter du seul silence gardé.","le tout sans novation ni remise de dette afférente.","la nullité d'une clause n'entraînant pas celle des présentes.","l'acceptation emportant adhésion pleine, entière et joyeuse.","le for juridictionnel demeurant celui du siège social fictif.","les annexes faisant partie intégrante du corpus contractuel.","la présente stipulation primant sur toute logique élémentaire."];
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function roman(n) { var r=['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX']; return r[n]||(''+n); }
+
+  var clauseNum = 0;
+  function genClause(intensity) {
+    clauseNum++;
+    var n = Math.min(5, 1 + Math.floor(intensity / 1.5));
+    var html = '<p class="art-title">Article ' + roman(clauseNum) + ' — Des stipulations diverses et avenantes</p>';
+    for (var i = 0; i < n; i++) {
+      html += '<p class="clause"><span class="num">' + clauseNum + '.' + (i + 1) + '</span> Il est convenu que ' + pick(sujets) + ' ' + pick(verbes) + ' ' + pick(objets) + ', ' + pick(conditions) + ', ' + pick(consequences) + '</p>';
+    }
+    return html;
+  }
+
+  for (var i = 0; i < 3; i++) content.insertAdjacentHTML('beforeend', genClause(0));
+
+  var statusMsgs = [
+    "Plus vous défilez, plus les juristes s'emballent…",
+    "Le cabinet d'avocats vient de recruter trois stagiaires.",
+    "Un alinéa vient d'engendrer un sous-alinéa.",
+    "Le RGPD demande à parler à votre manager.",
+    "Maître Charabia ajoute une annexe à l'annexe.",
+    "Attention : densité de jargon critique atteinte.",
+    "Le consentement éclairé est désormais aveuglant.",
+    "Vous y êtes presque… ou pas. Personne ne sait.",
+    "Le bas du document s'éloigne quand vous approchez.",
+    "Article MMXIV : du droit de continuer à scroller.",
+    "Un juriste a démissionné. Deux l'ont remplacé.",
+    "Saviez-vous que ces CGU n'ont pas de fin ? Maintenant si.",
+    "La barre de progression a renoncé à progresser.",
+    "Vous lisez plus de CGU que n'importe qui sur Terre.",
+    "Ceci est officiellement le scroll de votre vie."
+  ];
+
+  scroll.addEventListener('scroll', function () {
+    var max = scroll.scrollHeight - scroll.clientHeight;
+    var ratio = max > 0 ? scroll.scrollTop / max : 0;
+
+    if (ratio > 0.75) {
+      var intensity = scroll.scrollHeight / 600;
+      content.insertAdjacentHTML('beforeend', genClause(intensity));
+      content.insertAdjacentHTML('beforeend', genClause(intensity));
+    }
+
+    var newMax = scroll.scrollHeight - scroll.clientHeight;
+    var displayRatio = newMax > 0 ? scroll.scrollTop / newMax : 0;
+    var pct = Math.min(99, Math.round(displayRatio * 99));
+    bar.style.width = pct + '%';
+    badge.textContent = pct + ' %';
+
+    var msgIdx = Math.floor(scroll.scrollTop / 1200) % statusMsgs.length;
+    status.textContent = statusMsgs[msgIdx];
+  });
+
+})();
+</script>
+</body>
+</html>
